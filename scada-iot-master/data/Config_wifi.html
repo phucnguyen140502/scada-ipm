@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Config Wifi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    #snackbar {
+      visibility: hidden;
+      min-width: 250px;
+      margin-left: -125px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 2px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1100;
+      left: 50%;
+      top: 30px;
+      font-size: 17px;
+    }
+
+    /* CSS cho snackbar khi hiển thị */
+    #snackbar.show {
+      visibility: visible;
+    }
+
+    .c,
+    body {
+      text-align: center;
+      font-family: verdana;
+      width: 100%;
+    }
+
+    div,
+    input,
+    select {
+      padding: 5px;
+      font-size: 1.5rem;
+      margin: 5px 0;
+      box-sizing: border-box;
+    }
+
+    input,
+    button,
+    select,
+    .msg {
+      border-radius: .3rem;
+      width: 100%;
+    }
+
+    input[type=radio],
+    input[type=checkbox] {
+      width: auto
+    }
+
+    button,
+    input[type='button'],
+    input[type='submit'] {
+      cursor: pointer;
+      border: 0;
+      background-color: #1fa3ec;
+      color: #fff;
+      line-height: 2.4rem;
+      font-size: 1.2rem;
+      width: 100%;
+    }
+
+    input[type='file'] {
+      border: 1px solid #1fa3ec
+    }
+
+    .wrap {
+      text-align: left;
+      display: inline-block;
+      width: 100%;
+      min-width: 300px;
+      max-width: 500px;
+    }
+
+    h3 {
+      background-color: #cce0ff;
+      width: 100%;
+      border-radius: .3rem;
+    }
+
+    a {
+      color: #000;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: #1fa3ec;
+      text-decoration: underline;
+    }
+
+    .q {
+      height: 16px;
+      margin: 0;
+      padding: 0 5px;
+      text-align: right;
+      min-width: 38px;
+      float: right;
+    }
+
+    .q.q-0:after {
+      background-position-x: 0;
+    }
+
+    .q.q-1:after {
+      background-position-x: -16px;
+    }
+
+    .q.q-2:after {
+      background-position-x: -32px;
+    }
+
+    .q.q-3:after {
+      background-position-x: -48px;
+    }
+
+    .q.q-4:after {
+      background-position-x: -64px;
+    }
+
+    .q.l:before {
+      background-position-x: -80px;
+      padding-right: 5px;
+    }
+
+    .ql .q {
+      float: left;
+    }
+
+    .q:after,
+    .q:before {
+      content: '';
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+      background-repeat: no-repeat;
+      background-position: 16px 0;
+      background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAAAQCAMAAADeZIrLAAAAJFBMVEX///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADHJj5lAAAAC3RSTlMAIjN3iJmqu8zd7vF8pzcAAABsSURBVHja7Y1BCsAwCASNSVo3/v+/BUEiXnIoXkoX5jAQMxTHzK9cVSnvDxwD8bFx8PhZ9q8FmghXBhqA1faxk92PsxvRc2CCCFdhQCbRkLoAQ3q/wWUBqG35ZxtVzW4Ed6LngPyBU2CobdIDQ5oPWI5nCUwAAAAASUVORK5CYII=');
+    }
+
+    #refresh_icon {
+      border: 4px solid #f3f3f3;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: inline-block;
+      float: right;
+      margin-left: 10px;
+      cursor: pointer;
+      background-image: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"%3E%3Cpath d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6a6 6 0 0 1-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" fill="%23333" /%3E%3C/svg%3E');
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      margin: 2px 10px 2px 10px;
+    }
+
+    #loader {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #333;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      float: right;
+      margin-left: 10px;
+      margin-top: 5px;
+      /* Thiết lập khoảng cách trên, phải, dưới, và trái */
+      margin: 2px 10px 2px 10px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+
+</head>
+
+<body class="{c}">
+  <div id="snackbar"></div> <!-- thông báo -->
+  <nav style="overflow:hidden; background-color:#f2f2f2; position:fixed; left:0px; top:0px; z-index:1000; width:100%;">
+    <h2>Thiết lập wifi</h2>
+  </nav>
+  <br><br><br>
+
+
+  <div class="wrap container">
+    <br><br><br>
+
+
+    <div id="wifi_CMD_hear"></div>
+
+    <br>
+    <h3>Wifi<a id="loader_html"></a></h3>
+
+    <div id="wifi_scan_hear"></div>
+
+    <br><br>
+    <form id="wifiForm">
+      <label for="s">Tên Wifi</label>
+      <input id="s" name="ssid" maxlength="32" autocorrect="off" autocapitalize="none" placeholder="Tên Wifi">
+      <br>
+      <table style="width:100%;">
+        <td style="width:90%;"><label for="p">Mật khẩu</label></td>
+        <td style="width:10%;"><a id="hide_icon" onclick="hide_f()"></a></td>
+      </table>
+
+      <input id="p" name="password" maxlength="64" type="password" placeholder="********">
+      <br><br>
+      <button type="submit">Lưu</button>
+    </form>
+    <br>
+    <button onclick="fetchWifiScanData()">Làm mới</button>
+    <br><br>
+    <a href="/"><button>Về trang chủ</button></a>
+  </div>
+  <br><br><br>
+
+
+  <script>
+
+    function getMillis() {
+      let d = new Date();
+      let n = ((d.getHours() * 60 + d.getMinutes()) * 60 + d.getSeconds()) * 1000 + d.getMilliseconds();
+      return n;
+    }
+
+    window.onload = function () {  // Gọi hàm khi trang được tải
+      fetchWifiScanData();
+    };
+    function fetchWifiScanData() {                                        // Function để gọi API scan wifi và xử lý dữ liệu dạng HTML
+      document.getElementById('loader_html').innerHTML = "<span id='loader'></span>";        // biểu tượng load
+
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          try {
+            let state = JSON.parse(this.responseText);                    // Chuyển đổi this.responseText từ chuỗi JSON sang đối tượng JSON
+            let CMD = "";
+            let Wifi_connect_info = "";                                   // biến đệm lưu thông tin kết nối wifi
+
+            if (state['client_ID'] == state['softAPIP']) {                                                      // nếu IP thiết bị kết nối trùng với softAPIP thông báo mạng đang kết nối
+              Wifi_connect_info += "<p>Bạn đang kết nối thông qua điểm phát: " + state['softAPSSID'] + "</p>";  // thông báo kết nối qua softAP
+            } else {
+              Wifi_connect_info += "<p>Bạn đang kết nối thông qua mạng wifi: " + state['SSID'] + "</p>";        // thông báo kết nối qua mạng wifi cục bộ
+            }
+            Wifi_connect_info += "<br>";                                  // khoảng cách
+            Wifi_connect_info += "<h3>C&#7845;u h&igrave;nh SoftAP</h3>"; //
+            Wifi_connect_info += "<table>";                               //
+            Wifi_connect_info += "<tr>";                                  //
+            Wifi_connect_info += "<td>SSID:</td> ";                       //
+            Wifi_connect_info += "<td>" + state['softAPSSID'] + "</td>";  //
+            Wifi_connect_info += "</tr>";                                 //
+            Wifi_connect_info += "<tr>";                                  //
+            Wifi_connect_info += "<td>IP:</td>";                          //
+            Wifi_connect_info += "<td><a href='http://" + state['softAPIP'] + "'>" + state['softAPIP'] + "</a></td>"; //
+            Wifi_connect_info += "</tr>";                                 //
+            Wifi_connect_info += "</table>";                              //
+
+            Wifi_connect_info += "<br>";                                  //
+
+            Wifi_connect_info += "<h3>C&#7845;u h&igrave;nh WLAN</h3>";   //
+            Wifi_connect_info += "<table>";                               //
+            Wifi_connect_info += "<tr>";                                  //
+            Wifi_connect_info += "<td>SSID:</td> ";                       //
+            Wifi_connect_info += "<td>" + state['SSID'] + "</td>";        //
+            Wifi_connect_info += "</tr>";                                 //
+            Wifi_connect_info += "<tr>";                                  //
+            Wifi_connect_info += "<td>IP:</td> ";                         //
+            Wifi_connect_info += "<td><a href='http://" + state['localIP'] + "'>" + state['localIP'] + "</a></td>"; //
+            Wifi_connect_info += "</tr>";                                 //
+            Wifi_connect_info += "</table>";                              //
+
+            Wifi_connect_info += "<br>";                                  //
+
+            CMD += "\r\n";                                                //
+            CMD += Wifi_connect_info;                                     //
+
+
+            let n = state['num_wifi_scan'];                               // tìm các wifi lân cận
+            let re = "";                                                  // biến lưu html hiển thị wifi
+
+            if (n == 0) {                                                 // nếu không có wifi lân cận
+              re += "<div>No networks found</div>";                       //
+            }
+            else {                                                        // nếu có wifi lân cận
+
+              let rank = [];                                              // biến sắp sếp wifi theo cường độ sóng
+              for (let i = 0; i < n; ++i) rank[i] = i;                    // tạo giá trị ban đầu từ 0 tới n
+
+              for (let i = 0; i < n; ++i) {                               // chạy hết mảng giá trị
+                for (let j = i; j < n; ++j) {                             // chạy từ i tới hết mảng giá trị
+                  if (state[`RSSI${rank[i]}`] < state[`RSSI${rank[j]}`]) {// nếu giá trị cường độ sóng của i không phải là lớn nhất
+                    let buf = rank[i];                                    // biến đệm để dảo giá trị
+                    rank[i] = rank[j];                                    // đảo giá trị
+                    rank[j] = buf;                                        // đảo giá trị
+                  }                                                       //
+                }                                                         //
+              }                                                           //
+
+              for (let i = 0; i < n; ++i) {                               // chạy hết các mạng wifi
+                re += "<div>";                                            //
+
+                let hasKeyIcon = false;                                   // kiểm tra có được lưu không
+                for (let j = 1; j <= state['num_wifi']; j++) {            // chạy kiểm tra trong dữ liệu wifi đã lưu
+                  if (state[`ssid${j}`] === state[`SSID${rank[i]}`]) {    // nếu đã lưu
+                    hasKeyIcon = true;                                    // đánh dấu là có lưu
+                    break;                                                // thoát for
+                  }
+                }
+
+                re += "<a onclick=\"c(this)\" data-ssid=\"" + state[`SSID${rank[i]}`] + "\">" + state[`SSID${rank[i]}`];
+                if (hasKeyIcon) re += " 🔑";                              // Add key icon
+                re += "</a>";
+
+                re += "<div role=\"img\" class=\"q ";                     // lớp q biểu tượng mức wifi
+                if (state[`RSSI${rank[i]}`] > -60) re += "q-4";           // tín hiệu mạnh nhất
+                else if (state[`RSSI${rank[i]}`] > -70) re += "q-3";      // tín hiệu yếu hơn
+                else if (state[`RSSI${rank[i]}`] > -80) re += "q-2";      // tín hiệu yếu hơn
+                else if (state[`RSSI${rank[i]}`] > -90) re += "q-1";      // tín hiệu yếu hơn
+                else re += "q-0";                                         // tín hiệu yếu nhất
+                if (state[`encryptionType${rank[i]}`]) re += " l";        // nếu có bảo mật thêm ổ khóa
+                re += "\"></div>";                                        //
+                re += "</div>";                                           //
+              }                                                           //
+            }                                                             //
+
+            document.getElementById('wifi_CMD_hear').innerHTML = CMD;     // hiển thị
+            document.getElementById('wifi_scan_hear').innerHTML = re;     // hiển thị      
+            document.getElementById('loader_html').innerHTML = "<span id='refresh_icon' onclick='fetchWifiScanData()'></span>"; // Thay đổi biểu tượng loader thành biểu tượng refresh
+          } catch (e) {
+            console.error("Lỗi khi chuyển đổi this.responseText thành JSON:", e);
+            document.getElementById('wifi_scan_hear').innerHTML = "<div>Lỗi khi lấy dữ liệu mạng WiFi.</div>";
+          }
+
+        }
+        // setTimeout(fetchWifiScanData, 60000);
+      };
+      xhttp.open("GET", "/_WIFI_SCAN_", true);
+      xhttp.send();
+    }
+
+    document.getElementById('wifiForm').addEventListener('submit', function (e) {
+      e.preventDefault();                                                 // Ngừng làm mới trang khi submit form
+
+      const ssid = document.getElementById('s').value;                    // Lấy dữ liệu từ form
+      const password = document.getElementById('p').value;
+
+      var xhttp = new XMLHttpRequest();                                   // Tạo đối tượng XMLHttpRequest
+      xhttp.onreadystatechange = function () {
+        if (this.readyState == 4) {
+          if (this.status == 200) {
+            showSnackbar("Lưu thành công!");
+          } else {
+            showSnackbar("Lỗi khi lưu!");
+          }
+          setTimeout(fetchWifiScanData, 10000); // làm mới dữ liệu wifi sau 10s
+        }
+      };
+
+      xhttp.open("PUT", "/wifisave", true);// Gửi yêu cầu POST tới server
+      xhttp.setRequestHeader("Content-Type", "application/json");
+
+      var data = JSON.stringify({ "ssid": ssid, "password": password });// Gửi dữ liệu dưới dạng JSON
+      xhttp.send(data);
+    });
+
+    function showSnackbar(message) {// Function để hiển thị snackbar
+      const snackbar = document.getElementById("snackbar");
+      snackbar.innerText = message;
+      snackbar.className = "show";
+      setTimeout(() => { snackbar.className = snackbar.className.replace("show", ""); }, 3000); // Thời gian hiển thị snackbar là 3 giây
+    }
+
+    function c(l) {
+      document.getElementById('s').value = l.getAttribute('data-ssid') || l.innerText || l.textContent;
+      p = l.nextElementSibling.classList.contains('l');
+      document.getElementById('p').disabled = !p;
+      if (p) document.getElementById('p').focus();
+    }
+
+    hide_f();
+    var password_visibility = 0;
+    function hide_f() {
+      if (password_visibility == 0) {
+        password_visibility = 1;
+        document.getElementById("hide_icon").innerHTML = "<img src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAU1JREFUSEvd1b1KXkEQxvHfewcWQkilTWJlCAStkyswjQFB0aRIraixVEu/SGoLP1AIxEavQGtFEFPFNLESwcI7UEbmwPqiBIRt3GrP7Ozz331md09L5daqrO/5A7oxhi68Qk9a+gd/cY4N/HvM6scseovRFO/4T52uE7KJk/bchwCD+FUkrmIbl7jI+Eu8wDC+FrmfsFNC2gGl+E+s4BgjKVRaFOAtvMMkhlL4HqQEDGA3k35gIvsl9CpjnQ+Ifcd4xj9iL/ol4BB9WMZ0JvbiFGdYwFrGv2AGr/EGvzO+hCkcob8EfEuBEGpsiPE4QetpVUwsWywkrPmcRW7G4oQFOBaw2OzgJkc/4KBQmcMs2uOR8h77mEfkNa2J322gAVTfQdCq1iAA1U9RQKreg6ZIVW9yA6n6FpVnvdpr2nannv75/P9oT/cmZ1a36BZnD2UZnSTnLwAAAABJRU5ErkJggg=='>";
+        document.getElementById("p").type = "text";
+      } else {
+        password_visibility = 0;
+        document.getElementById("hide_icon").innerHTML = "<img src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAehJREFUSEu11buvTUEUx/HP0RMNohBELhoihBZ/AYorJMSjUCmIV4nSKyQqN/EKIaGh06ElEqHySFCJaCQ6DVmy5mTuZO9T7TvJSfbZs2d916zfb82MzPEYzXF8NWAlvgwNLIAFeIqXODckpACm8SgDn68gG7ANWzGFZfiDD/iEb7iDr31J1SXqg1zGiQm7+pWQu3jbfteK3Ac5gplcPB9LsQT7EHNl7MbjGjIJEN/V5YoSRgI/s0QBvIdNucO9GXgWZFKJznZocgm7sKoj2FUcy/c70zRjm8Z232FxlfUOPOmAxKvDuJlz6/E+nyOBk3iNLfGu7KBMvMD2qobhoOc9kBtZ/0MpclkWDluNM7hYAH9zNoIHpIzoiVKqVpNiiFqn+KZOalQAp3EBH7GmAhzE7cZ6dcBrCJvWzfkGG0upa5FfYTPC96cy6LrUprV3m3W74yjT2lqDeK5FjcyO56q6N2pQC7mF0CPG2KqT+uAhriC2vD8FjfItqihdfdLbB2Vdm3E01H38wHf8RjTVgw53xdqJnVwgccgdQIi8sBWg43+fJrPug644KxKyPE/TKNG8PEk/I35dHT+ONcSNVize9sl/yBCAiHMU1zs0GQwQscv5FHdCOCkupEEBEW8PnmV3D1qiXqP9A9u8bxkywqQAAAAAAElFTkSuQmCC'>";
+        document.getElementById("p").type = "password";
+      }
+    }
+
+  </script>
+</body>
+
+</html>

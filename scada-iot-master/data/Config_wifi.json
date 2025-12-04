@@ -1,0 +1,11 @@
+{
+    "host":"main8266",
+    "hostname":"HomeCTR",
+    "ssid_AP":"main",
+    "password_AP":"123456789",
+    "num_wifi":2,
+    "ssid1":"International University",
+    "password1":"",
+    "ssid2":"VuHongQuang",
+    "password2":"vuhongquang"
+}

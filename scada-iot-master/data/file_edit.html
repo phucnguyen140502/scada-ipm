@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>File Edit</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <style>
+        #snackbar {
+            /* CSS cho snackbar */
+            visibility: hidden;
+            /* không hiển thị */
+            min-width: 250px;
+            /* chiều rộng tối thiểu */
+            margin-left: -125px;
+            /* căn lề trái */
+            background-color: #333;
+            /* màu nền */
+            color: #fff;
+            /* màu chữ */
+            text-align: center;
+            /* căn chữ, căn giữa */
+            border-radius: 2px;
+            /* bo tròn góc */
+            padding: 16px;
+            /* khoản cách dòng */
+            position: fixed;
+            /* vị trí cố định */
+            z-index: 1;
+            /* nằm trên */
+            left: 50%;
+            /* lề trái */
+            top: 30px;
+            /* lề trên */
+            font-size: 17px;
+            /* cỡ chữ */
+        }
+
+        /**/
+
+        #snackbar.show {
+            /* CSS cho snackbar khi hiển thị */
+            visibility: visible;
+            /* hiển thị */
+        }
+
+        /**/
+
+        button {
+            margin-top: 10px;
+            /* Thêm khoảng cách cho các nút */
+        }
+
+        textarea {
+            font-family: 'Lucida Console', monospace;
+            width: 100%;
+            height: calc(100vh - 150px);
+            /* Giảm chiều cao textarea để thêm không gian giữa nút và textarea */
+            resize: none;
+            /* Tắt khả năng thay đổi kích thước */
+            margin-top: 20px;
+            /* Thêm khoảng cách giữa textarea và các nút */
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="snackbar"></div> <!-- thông báo -->
+    <label>File name:</label> <!-- nhãn tên file -->
+    <input type="text" id="file_name" name="file_name"> <!-- khung tên file -->
+    <button onclick="read_data()">read</button> <!-- nút đọc file -->
+    <button onclick="write_data()">Save</button> <!-- nút lưu file -->
+    <button onclick="Download()">Download</button> <!-- nút tải xuống -->
+    <textarea name="data" class="form-control" rows="30" id="comment"></textarea><!-- nội dung file -->
+
+    <script>
+        var file_name = document.getElementById("file_name");       //
+        var comment = document.getElementById("comment");         // 
+        var snackbar = document.getElementById("snackbar");        //
+        var download = document.getElementById("download");        //
+
+        read_data_begin();                                          // chạy hàm đọc dữ liệu khi trang được tải xong
+        function read_data_begin() {                                 // hàm lấy dữ liệu ban đầu
+            var string_href = location.href;                          // lấy link
+            var name = string_href.substring(string_href.search("name=") + 5);// cắt lấy tên file từ link
+            file_name.value = name;                                   // gán tên file
+            read_data();                                            // hàm lấy dữ liệu
+        }                                                               //
+
+        function Download() {                                        // hàm tải file									 
+            location.replace("/file_download?name=" + file_name.value);// link tải file
+        }                                                           // 
+
+        function read_data() {                                       // hàm lấy dữ liệu
+            const xhttp = new XMLHttpRequest();                     // hình thước gửi dữ liệu
+            xhttp.onload = function () { comment.value = this.responseText; }// hàm thực hiện khi hoàn thành
+            xhttp.open("GET", "file_read?name=" + file_name.value, true);// method GET gửi url
+            xhttp.setRequestHeader("Content-Type", "text/plain");	// gửi tiêu đề
+            xhttp.send();                                           // gửi
+        }                                                           //
+
+
+        function write_data() {                                     // hàm gửi dữ liệu
+            var xhttp = new XMLHttpRequest;                         // hình thước gửi dữ liệu
+            xhttp.onreadystatechange = function () {                 // hàm thực hiện khi hoàn thành gửi dữ liệu 
+                if (this.readyState == 4) {                          // nếu hoàn thành gửi dữ liệu
+                    if (this.status == 200) {                       // nếu nhận được mã báo thành công 
+                        snackbar.innerHTML = "Save done";             // thông báo
+                        snackbar.className = "show";                  // hiện thông báo
+                        setTimeout(function () { snackbar.className = snackbar.className.replace("show", ""); }, 3000);// tắt thông báo sau 3s
+                    } else {                                          // nếu không thành công
+                        snackbar.innerHTML = "Save ERRO";             // thông báo 
+                        snackbar.className = "show";                  // hiện thông báo
+                        setTimeout(function () { snackbar.className = snackbar.className.replace("show", ""); }, 3000);// tắt thông báo sau 3s
+                        console.log("save erro");                   // hiển thị báo lỗi trên console(F12)
+                    }                                               //
+                    console.log(this.responseText);                 // hiển thị dữ liệu nhận được trên console(F12)
+                }                                                   //
+            };                                                      //
+            xhttp.timeout = 5000;                                   // gửi dữ liệu lỗi sau 5S
+            xhttp.open("POST", "file_write?name=" + file_name.value, true);// method POST gửi url
+            xhttp.setRequestHeader("Content-Type", "text/plain");   // gửi tiêu đề
+            xhttp.send(comment.value);                              // thực hiện gửi giá trị
+        }                                                           //
+
+    </script>
+
+</body>
+
+</html>

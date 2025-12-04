@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="vi-VN">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Điều khiển đèn</title>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=power_settings_new" />
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+	
+	<style>
+		body {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			flex-direction: column;
+			margin: 0 auto;
+			background-color: #f0f0f0;
+			max-width: 900px; /* Đặt độ rộng tối đa */
+			padding: 0 20px; /* Thêm padding để không bị sát lề */
+		}
+		
+		
+		
+		#powerButton {
+			width: 120px; /* Kích thước nút */
+			height: 120px;
+			background-color: gray;
+			transition: background-color 0.3s ease; /* Hiệu ứng chuyển màu mượt */
+			border: none;
+			border-radius: 50%;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			cursor: pointer;
+			margin-bottom: 20px; /* Khoảng cách dưới nút */
+		}
+		.material-symbols-outlined {
+			font-size: 80px; /* Kích thước biểu tượng */
+			color: white; /* Màu sắc biểu tượng */
+		}
+		.timeInput {
+			margin-top: 20px;
+			display: flex; /* Sử dụng flex để căn chỉnh các phần tử bên trong */
+			align-items: center; /* Căn giữa theo chiều dọc */
+		}
+		.timeContainer {
+			display: flex;
+			flex-direction: column; /* Sắp xếp các ô input theo chiều dọc */
+		}
+		#statusMessage {
+			margin-top: 20px;
+			font-size: 20px;
+			font-weight: bold;
+		}
+		.dataDisplay {
+			margin-top: 40px;
+			font-size: 18px;
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			width: 300px;
+			background-color: #e0e0e0;
+			padding: 10px;
+			border-radius: 10px;
+		}
+
+		.dataRow {
+			display: flex;
+			justify-content: space-between; /* Đưa tiêu đề và giá trị sang hai bên */
+		}
+
+		@media (min-width: 600px) {
+			body {
+				height: 270vh; /* Tăng chiều cao trang để có thể cuộn */
+			}
+			.timeContainer {
+				flex-direction: row; /* Sắp xếp theo hàng */
+				gap: 20px; /* Khoảng cách giữa Thời gian bật và Thời gian tắt */
+			}
+			.dataDisplay {
+				flex-direction: row;
+				flex-wrap: wrap;
+				justify-content: space-between;
+				width: 400px;  /* Phóng to chiều rộng nền */
+				padding: 20px; /* Tăng padding cho cảm giác thoải mái hơn */
+			}
+			.dataRow {
+				width: 45%; /* Đảm bảo mỗi cặp chiếm 45% chiều rộng */
+			}
+		}
+
+		@media (max-width: 600px) {
+			body {
+				height: 150vh; /* Tăng chiều cao trang để có thể cuộn */
+			}
+		
+			.timeContainer {
+				flex-direction: column; /* Sắp xếp theo cột trên màn hình nhỏ */
+			}
+			.dataDisplay {
+				width: 250px;  /* Thu nhỏ chiều rộng của nền */
+				padding: 5px;  /* Thu nhỏ padding để gọn hơn */
+			}
+		}
+
+		/* Tạo khoảng cách giữa phần hiển thị dữ liệu và biểu đồ */
+		canvas {
+			margin-top: 40px;
+		}
+	</style>
+</head>
+<body>
+
+	<button id="powerButton">
+		<span class="material-symbols-outlined">power_settings_new</span>
+	</button>
+
+	<div id="statusMessage">Đèn đang tắt</div>
+
+	<div class="timeContainer">
+		<div class="timeInput">
+			<label for="onTime">Thời gian bật: </label>
+			<input type="time" id="onTime">
+		</div>
+
+		<div class="timeInput">
+			<label for="offTime">Thời gian tắt:&nbsp; </label>
+			<input type="time" id="offTime">
+		</div>
+	</div>
+
+	<div class="dataDisplay">
+		<div class="dataRow">
+			<div>Năng lượng:</div><span id="energyDisplay">0 kWh</span>
+		</div>
+		<div class="dataRow">
+			<div>Công suất:</div><span id="powerDisplay">0 W</span>
+		</div>
+		<div class="dataRow">
+			<div>Điện áp:</div><span id="voltageDisplay">0 V</span>
+		</div>
+		<div class="dataRow">
+			<div>Dòng điện:</div><span id="currentDisplay">0 A</span>
+		</div>
+		<div class="dataRow">
+			<div>Tần số:</div><span id="frequencyDisplay">0 Hz</span>
+		</div>
+		<div class="dataRow">
+			<div>Cos phi:</div><span id="cosPhiDisplay">0</span>
+		</div>
+
+	</div>
+
+		<canvas id="powerChart" width="400" height="200"></canvas>
+		<figcaption>Biểu đồ năng lượng sử dụng hàng ngày</figcaption>
+		
+		<canvas id="energyChart" width="400" height="200"></canvas>
+		<figcaption>Biểu đồ năng lượng sử dụng hàng tháng</figcaption>
+
+	<script>
+	
+	var post_get_state	= 0;	// 0 only get, 1 getting, 2 postting, 3 post continuous, 4 wait 	// trạng thái gửi nhận dữ liệu	
+	var timeOffset		= 0;										// biến thời gian gửi dữ liệu tiếp theo
+	var state			= {}										// biến lưu dữ liệu trạng thái
+	
+	
+	function getMillis(){											// hàm lấy giá trị thời gian millis
+		var d=new Date();											// lấy thời gian hiện tại
+		var n=((d.getHours()*60+d.getMinutes())*60+d.getSeconds())*1000+d.getMilliseconds();// tính toán thời gian dạng millis 
+		const weekday = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];//
+
+		return n;													// trả về kết quả
+	}																//
+
+	setInterval(updateStatus, 500);          	  					// lấy dữ liệu ban đầu thực thi sau mỗi 100ms
+	function updateStatus() {										// hàm lấy dữ liệu
+		if ((post_get_state!=1)&&(timeOffset<getMillis())) {		// nếu không mới gửi dữ liệu 
+			post_get_state=1;										// đánh dấu đang lấy dữ liệu 
+			$.ajax({												// ajax jquery 
+				type: 'GET',										// method GET
+				url: "state",										// link lấy dữ liệu
+				dataType: "json",									// lấy dữ liệu dạng JSON
+				data: [{											// giữ liệu gửi đi
+					name: "light",									// tag name
+					value: "1"										// giá trị
+				}, ],												//
+				success: function(data) {							// hàm chạy khi lấy dữ liệu thành công
+					if ((timeOffset<getMillis()) && (data)){		// nếu có dữ liệu và được phép nhận dữ liệu
+						state = data;								// lưu dữ liệu nhận được vào state
+						fupdateStatus();							//
+					}												//
+					post_get_state=4;								// báo hoàn thành nhận và mở hàng đợi
+				},													// 
+				error: function() {									// hàm chạy khi lỗi
+					alert('Không thể lấy dữ liệu. Vui lòng thử lại sau.');
+					console.log('error getting state');				// báo lỗi trên console(F12)
+					post_get_state=4;								// báo hoàn thành nhận và mở hàng đợi
+				},													//
+				timeout: 10000										// đợi lấy dữ liệu trong 10 giây
+			});														//
+		}															//
+	}																//
+
+	function postData(data) {										// hàm gửi dữ liệu
+		if (post_get_state==0) return;								// nếu tải chưa hoàn tất thì hủy
+		timeOffset=getMillis()+10000;								// đánh dấu thời gian tiếp theo được phép nhận dữ liệu 
+		if (post_get_state != 2) {    								// 
+			post_get_state=2;										// đánh dấu đang gửi dữ liệu 
+			const xhttp = new XMLHttpRequest;						// hình thước gửi dữ liệu
+			xhttp.onreadystatechange = function() {					// hàm thực hiện khi hoàn thành gửi dữ liệu 
+				if (this.readyState == 4){							// nếu hoàn thành gửi dữ liệu
+					if (this.status == 200) {						// nếu nhận được mã báo thành công 
+						console.log(this.responseText);				// hiển thị dữ liệu nhận được trên console(F12)
+						timeOffset=getMillis()+1000;				// thời gian tiếp theo được phép nhận dữ liệu
+						fpostData();								//
+						post_get_state=4;							// báo hoàn thành mở hàng đợi
+					}else{											// nếu không thành công
+						console.log(this.responseText);				// hiển thị dữ liệu nhận được trên console(F12)
+						post_get_state=4;							// mở hàng đợi làm mới
+						setTimeout(postData(state), 1000); 			// thử gửi lại sau 1 giây
+					}												//
+				}													//
+			};														//
+			xhttp.timeout = 10000;									// gửi dữ liệu lỗi sau 5S
+			xhttp.open("PUT", "state", true);						// method PUT gửi biến state
+			xhttp.setRequestHeader("Content-Type", "application/json");	// gửi tiêu đề
+			console.log(JSON.stringify(data)), xhttp.send(JSON.stringify(data));// thực hiện gửi và hiển thị giá trị trên console(F12)
+		} else {													// 
+			setTimeout(postData(state), 1000); 						// thử gửi lại sau 1 giây
+		}															//
+	}																//
+
+
+
+
+
+
+
+
+
+
+	function fupdateStatus() {
+		updatepowerButton();
+		updatedataDisplay();
+		updateInputFields();
+		updatepowerChart();
+		updateenergyChart();
+	}
+
+
+
+	function fpostData() {										// hàm thực hiện sau khi post Data thành công
+	}
+
+
+	
+
+	const powerButton		= document.getElementById('powerButton');
+	const onTimeInput		= document.getElementById('onTime');
+	const offTimeInput		= document.getElementById('offTime');
+	const statusMessage		= document.getElementById('statusMessage');
+	const energyDisplay		= document.getElementById('energyDisplay');
+	const powerDisplay		= document.getElementById('powerDisplay');
+	const voltageDisplay	= document.getElementById('voltageDisplay');
+	const currentDisplay	= document.getElementById('currentDisplay');
+	const frequencyDisplay	= document.getElementById('frequencyDisplay');
+	const cosPhiDisplay		= document.getElementById('cosPhiDisplay');
+
+
+	function updatedataDisplay() {
+		energyDisplay.textContent		= state["total_energy"]	+ " kWh";
+		powerDisplay.textContent		= state["power"]		+ " W  ";
+		voltageDisplay.textContent		= state["voltage"]		+ " V  ";
+		currentDisplay.textContent		= state["current"]		+ " A  ";
+		frequencyDisplay.textContent	= state["frequency"]	+ " Hz ";
+		cosPhiDisplay.textContent		= state["power_factor"];
+	}
+
+	powerButton.addEventListener('click', () => {
+		if (state["toggle"]==0) {
+			state["toggle"]=1;
+		} else {
+			state["toggle"]=0;
+		}
+		updatepowerButton();
+		postData(state);
+	});
+
+	function updatepowerButton() {
+		if (state["toggle"]==0) {
+			powerButton.style.backgroundColor	= 'gray';
+			statusMessage.textContent			= 'Đèn đang tắt';
+		} else {
+			powerButton.style.backgroundColor	= 'green';
+			statusMessage.textContent			= 'Đèn đang bật';
+		}
+	}
+
+
+
+	// Cập nhật giá trị từ các ô input vào biến state
+	onTimeInput.addEventListener('input', () => {
+		const [hour_on, minute_on]	= onTimeInput.value.split(':');
+		state["hour_on"]			= parseInt(hour_on, 10);
+		state["minute_on"]			= parseInt(minute_on, 10);
+		postData(state); // Gửi dữ liệu sau khi thay đổi
+	});
+
+	offTimeInput.addEventListener('input', () => {
+		const [hour_off, minute_off]	= offTimeInput.value.split(':');
+		state["hour_off"]				= parseInt(hour_off, 10);
+		state["minute_off"]				= parseInt(minute_off, 10);
+		postData(state); // Gửi dữ liệu sau khi thay đổi
+	});
+
+
+	// Cập nhật các ô input khi state thay đổi
+	function updateInputFields() {
+		onTimeInput.value  = `${String(state["hour_on"]).padStart(2, '0')}:${String(state["minute_on"]).padStart(2, '0')}`;
+		offTimeInput.value = `${String(state["hour_off"]).padStart(2, '0')}:${String(state["minute_off"]).padStart(2, '0')}`;
+	}
+
+
+
+
+
+
+
+
+
+
+	// Hàm để tạo nhãn ngày từ ngày hôm nay
+	function getLastSevenDays() {
+		const today					= new Date();
+		const year					= today.getFullYear();
+		const month					= today.getMonth();
+		const lastDayOfLastMonth	= new Date(year, month, 0);
+		const lastDay				= lastDayOfLastMonth.getDate();
+		const labels				= [];
+		const dailyData				= [];
+		const stateSUB				= {}
+
+		stateSUB[`power_D1`] = state[`power_D1`] - state[`power_D${lastDay}`];
+		
+		for (let i = 2; i <= 31; i++) {
+			stateSUB[`power_D${i}`] = state[`power_D${i}`] - state[`power_D${i-1}`];
+		}
+
+
+
+
+		for (let i = 0; i < 7; i++) {
+			const date = new Date(today);
+			date.setDate(today.getDate() - i);
+			labels.push(date.toLocaleDateString('vi-VN')); // Định dạng ngày theo tiếng Việt
+			dailyData.push(stateSUB[`power_D${date.getDate()}`] || 0); // Lấy giá trị từ state hoặc 0 nếu không có
+		}
+
+		powerChart.data.labels           = labels.reverse();
+		powerChart.data.datasets[0].data = dailyData.reverse();
+		powerChart.update();
+	}
+
+
+	// Biểu đồ cột sử dụng Chart.js
+	const ctx = document.getElementById('powerChart').getContext('2d');
+	const powerChart = new Chart(ctx, {
+		type: 'bar',
+		data: {
+			labels: Array(7).fill(0), 
+			datasets: [{
+				label: 'Công suất (kWh)',
+				data:  Array(7).fill(0),
+				backgroundColor: 'rgba(75, 192, 192, 0.6)',
+				borderColor: 'rgba(75, 192, 192, 1)',
+				borderWidth: 1
+			}]
+		},
+		options: {
+			scales: {
+				y: {
+					beginAtZero: true,
+					title: {
+						display: true,
+						text: 'Công suất (kWh)'
+						}
+				},
+				x: {
+					title: {
+						display: true,
+						text: 'Ngày'
+					}
+				}
+			}
+		}
+	});
+
+	// Hàm cập nhật biểu đồ với giá trị mới
+	function updatepowerChart() {
+		getLastSevenDays();
+	}
+
+
+
+	// Hàm để tạo nhãn tháng từ tháng hiện tại
+	function getLastTwelveMonths() {
+		const today		= new Date(); 
+		const labels	= [];
+		const MonthData = [];
+		const stateSUB	= {}
+
+		stateSUB[`power_M1`] = state[`power_M1`] - state[`power_M12`];
+		for (let i = 2; i <= 12; i++) {
+			stateSUB[`power_M${i}`] = state[`power_M${i}`] - state[`power_M${i-1}`];
+		}
+		
+		
+		for (let i = 0; i < 6; i++) {
+			const date = new Date(today); 
+			date.setMonth(today.getMonth() - i);
+			const year	= date.getFullYear(); // Lấy năm
+			const month = date.toLocaleString('vi-VN', { month: 'long' }); // Lấy tên tháng
+
+			// Kiểm tra năm
+			if (year === today.getFullYear()) {
+				labels.push(`${month}`); // Chỉ thêm tháng nếu là năm hiện tại
+			} else {
+				labels.push(`${month} ${year}`); // Thêm tháng và năm nếu là năm trước
+				}
+			MonthData.push(stateSUB[`power_M${date.getMonth() +1}`] || 0);
+		}
+
+		energyChart.data.labels           = labels.reverse();
+		energyChart.data.datasets[0].data = MonthData.reverse();
+		energyChart.update();
+	}
+
+
+
+	// Biểu đồ kWh sử dụng Chart.js
+	const energyCtx = document.getElementById('energyChart').getContext('2d');
+	const energyChart = new Chart(energyCtx, {
+		type: 'bar',
+		data: {
+			labels: Array(6).fill(0),  
+			datasets: [{
+				label: 'Năng lượng (kWh)',
+				data: Array(6).fill(0), // Giá trị khởi tạo
+				backgroundColor: 'rgba(153, 102, 255, 0.6)',
+				borderColor: 'rgba(153, 102, 255, 1)',
+				borderWidth: 1
+			}]
+		},
+		options: {
+			scales: {
+				y: {
+					beginAtZero: true,
+					title: {
+						display: true,
+						text: 'Năng lượng (kWh)'
+					}
+				},
+				x: {
+					title: {
+						display: true,
+						text: 'Tháng'
+					}
+				}
+			}
+		}
+	});
+
+
+
+	function updateenergyChart() { // Hàm cập nhật biểu đồ năng lượng kWh
+		getLastTwelveMonths();
+	}
+
+
+
+
+
+    </script>
+
+</body>
+</html>

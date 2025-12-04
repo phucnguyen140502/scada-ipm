@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Firmware update</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+
+<style>
+    #snackbar {                           /* CSS cho snackbar */
+        visibility:        hidden;        /* không hiển thị */
+        min-width:         250px;         /* chiều rộng tối thiểu */
+        margin-left:       -125px;        /* căn lề trái */
+        background-color:  #333;          /* màu nền */
+        color:             #fff;          /* màu chữ */
+        text-align:        center;        /* căn chữ, căn giữa */
+        border-radius:     2px;           /* bo tròn góc */
+        padding:           16px;          /* khoản cách dòng */
+        position:          fixed;         /* vị trí cố định */
+        z-index:           1;             /* nằm trên */
+        left:              50%;           /* lề trái */
+        top:               30px;          /* lề trên */
+        font-size:         17px;          /* cỡ chữ */
+    }                                     /**/
+
+    #snackbar.show {                      /* CSS cho snackbar khi hiển thị */
+        visibility: visible;              /* hiển thị */
+    }                                     /**/
+</style>
+
+</head>
+
+<body>
+    <div id="snackbar"></div>                                   <!-- thông báo -->
+	<form method='POST' action='#' enctype='multipart/form-data' id='upload_form'>
+		<input type='file' name='update_firmware'>
+		<input type='submit' value='Update'>
+	</form>
+	<div id='prg'>progress: 0%</div>
+	<br><br>
+	<div>Chỉ chấp nhận tệp firmware có phần mở rộng là <a style="color:RED;">.bin</a></div>
+	<div>Bất kỳ sai sót nào trên firmware cũng có thể dẫn đến hư hỏng một phần hoặc vĩnh viễn</div>
+
+	<script>
+		var snackbar  = document.getElementById("snackbar");        //
+
+		$('form').submit(function(e){
+			e.preventDefault();
+			var form = $('#upload_form')[0];
+			var data = new FormData(form);
+			$.ajax({
+				url: '/update_firmware',
+				type: 'POST',
+				data: data,
+				contentType: false,
+				processData:false,
+				xhr: function() {
+					var xhr = new window.XMLHttpRequest();
+					xhr.upload.addEventListener('progress', function(evt) {
+						if (evt.lengthComputable) {
+							var per = evt.loaded / evt.total;
+							$('#prg').html('progress: ' + Math.round(per*100) + '%');
+						}
+					}, false);
+				return xhr;
+				},
+				success:function(d, s) {
+                    snackbar.innerHTML="success";             // thông báo
+                    snackbar.className="show";                  // hiện thông báo
+                    setTimeout(function(){snackbar.className=snackbar.className.replace("show", "");},5000);// tắt thông báo sau 3s
+					console.log('success!')
+				},
+				
+				error: function (a, b, c) {
+                    snackbar.innerHTML="error";             // thông báo
+                    snackbar.className="show";                  // hiện thông báo
+				}
+			});
+		});
+	</script>
+
+</body>
+</html>
