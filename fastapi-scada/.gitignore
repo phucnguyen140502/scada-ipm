@@ -1,0 +1,24 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+.vscode
+# Virtual environments
+*/.venv
+.env
+
+# Database
+mongo_data/
+redis_data/
+
+# Logs
+logs/
+
+# Nginx configuration
+nginx
+
+# Production
+docker-compose.prod.yml

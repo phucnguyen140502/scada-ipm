@@ -1,0 +1,93 @@
+services:
+  # --------------------------
+  # 1) MQTTT Broker
+  # --------------------------
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mosquitto
+    ports:
+       - "1:1883" 
+    volumes:
+      - ./mosquitto/config:/mosquitto/config  # Mount custom config
+      - ./mosquitto/data:/mosquitto/data      # Persist broker data
+      - ./mosquitto/log:/mosquitto/log       # Persist logs
+    restart: always
+    networks:
+      - internal-network
+    # environment:
+    #   VIRTUAL_HOST: "cgp.captechvn.com"
+    #   VIRTUAL_PORT: "1883"
+    #   LETSENCRYPT_HOST: "cgp.captechvn.com"
+    #   LETSENCRYPT_EMAIL: "chauanphu@gmail.com"
+    
+  # --------------------------
+  # 2) Databases
+  # --------------------------
+  mongodb:
+    image: mongo:6.0
+    container_name: scada-mongodb
+    restart: always
+    volumes:
+      - ./mongo_data:/data/db
+    networks:
+      - internal-network
+  # --------------------------
+  # 3) Redis Cache
+  # --------------------------
+  redis-cache:
+    image: redis:6.0
+    container_name: redis-cache
+    restart: always
+    volumes:
+      - ./redis_data:/data
+    networks:
+      - internal-network
+  # --------------------------
+  # 4) FastAPI App
+  # --------------------------
+  fastapi-app:
+    image: chauanphu/fastapi-scada:latest
+    container_name: scada-fastapi
+    restart: always                
+    command: uv run uvicorn main:app --host 0.0.0.0 --port 3000  # ← CHANGE THIS
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 5s
+      timeout: 2s
+      retries: 20
+    env_file:
+      - .env
+    depends_on:
+      - mongodb
+      - redis-cache
+      - mosquitto
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - internal-network
+      - nginx-network
+  # --------------------------
+  # 5) reactjs-app
+  # --------------------------
+  reactjs-app:
+    image: chauanphu/scada-reactjs:latest
+    container_name: scada-reactjs
+    restart: unless-stopped
+    environment:
+      # VIRTUAL_HOST: "scada.chaugiaphat.com"
+      # VIRTUAL_PORT: "80"
+      # LETSENCRYPT_HOST: "scada.chaugiaphat.com"
+      # LETSENCRYPT_EMAIL: "chauanphu@gmail.com"
+      NODE_ENV: production
+      VITE_API_URL: https://scada.vuhongquang.com/api
+      VITE_WS_URL: wss://scada.vuhongquang.com/ws
+    depends_on:
+      - fastapi-app
+    networks:
+      - internal-network
+      - nginx-network
+networks:
+  nginx-network:
+    external: true
+  internal-network:
+    driver: bridge
