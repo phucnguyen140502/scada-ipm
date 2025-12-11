@@ -45,8 +45,8 @@ struct WiFiCredential {
 };
 
 const WiFiCredential WIFI_CREDENTIALS[] = {
-    {"International University 2.4Ghz", ""},
-    {"VuHongQuang", "vuhongquang"},
+    {"chauanphu", "123123123"},
+    {"International University 2.4Ghz", "vuhongquang"},
     // Add more networks here: {"ssid", "password"},
 };
 const int WIFI_CREDENTIALS_COUNT = sizeof(WIFI_CREDENTIALS) / sizeof(WIFI_CREDENTIALS[0]);

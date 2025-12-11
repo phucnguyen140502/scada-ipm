@@ -14,10 +14,10 @@ void cmd_available(String data) {
 #define PR_LED          18         // đèn báo trạng thái
 #define OUTPUT_CRT      13     // đèn báo trạng thái
 #define PWM_AUTO_RESET  33 // đèn báo trạng thái
+#define LED_TOGGLE      16 // LED nhỏ báo trạng thái toggle (GPIO 16)
 
-#define RS485_SERIAL    16
-#define TX_PIN          16 // chân TX của serial 2 kết nối các thiết bị ngoại vi
-#define RX_PIN          17 // chân RX của serial 2 kết nối các thiết bị ngoại vi
+#define TX_PIN          14 // chân TX của serial 2 kết nối các thiết bị ngoại vi
+#define RX_PIN          32 // chân RX của serial 2 kết nối các thiết bị ngoại vi
 
 #define GPS_SERIAL      25
 #define GPS_TX_PIN      25 // chân TX của serial 2 kết nối các thiết bị ngoại vi
@@ -80,6 +80,7 @@ void setup()
   pinMode(PR_LED,         OUTPUT);  digitalWrite(PR_LED,          1);         // // thiết lập đèn báo là OUTPUT
   pinMode(OUTPUT_CRT,     OUTPUT);  digitalWrite(OUTPUT_CRT,      0);     //
   pinMode(PWM_AUTO_RESET, OUTPUT);  digitalWrite(PWM_AUTO_RESET,  0); //
+  pinMode(LED_TOGGLE, OUTPUT);  digitalWrite(LED_TOGGLE,  0); // LED toggle ban đầu tắt
   timer.attach_ms(100, onTimer);   // 0.2 giây = 200 ms
 
   Serial.begin(115200);                                    // tốc độ serial
@@ -163,6 +164,7 @@ void OUT_checking() {
     JsonData["toggle"] = 0;
 
   digitalWrite(OUTPUT_CRT, JsonData["toggle"]);
+  digitalWrite(LED_TOGGLE, JsonData["toggle"]); // LED theo trạng thái toggle
 }
 
 void loop() {
